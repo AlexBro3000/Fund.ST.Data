@@ -1,0 +1,302 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <chrono>
+using namespace std;
+
+struct Time
+{
+    int hour;
+    int minutes;
+};
+struct FULL_NAME
+{
+    string surname;      // Фамилия
+    string name;         // Имя
+    string patronymic;   // Отчество
+};
+struct _String
+{
+    Time date;           // Дата
+    int number;          // Номер пары
+    string discipline;   // Название дисциплины
+    int group;           // Номер группы
+    int classroom;       // Номер аудитории
+    FULL_NAME FIO;
+};
+
+class TimeTable
+{
+public:
+    TimeTable(const int& _size) :
+        size(_size)
+    {
+        records = new _String[_size];
+    }
+
+    void addRecords(string s, int n);
+    void _writeFile();
+    // Быстрая сортировка (Средний опорный)
+    void quick_sort_1();
+    void quick_sort_2();
+    // Сортировка вставки
+    void insertion_sort_1();
+    void insertion_sort_2();
+private:
+    void quick_sort_1(int i, int j, int n);
+    void quick_sort_2(int i, int j, int n);
+
+    const int size;
+    _String* records;
+};
+
+void _readFile(TimeTable* &t);
+
+int _max(int s, int max);
+int _max(string s, int max);
+string _write(int s, int max);
+string _write(string s, int max);
+string _write(Time t, int maxh, int maxm);
+
+int main()
+{
+    setlocale(LC_ALL, "ru");
+
+    TimeTable* t;
+    _readFile(t);
+    
+    chrono::system_clock::time_point start_Code = chrono::system_clock::now();
+    t->quick_sort_1();
+    t->quick_sort_2();
+    /*t->insertion_sort_1();
+    t->insertion_sort_2();*/
+    chrono::system_clock::time_point finish_Code = chrono::system_clock::now();
+
+    ofstream f("database_write.txt", ios::out);
+    if (f.is_open())
+    {
+        f << chrono::duration_cast<chrono::nanoseconds> (finish_Code - start_Code).count() << " ns\n";
+    }
+    else
+        cout << "Ошибка: Не удалось прочитать файл.\n";
+    f.close();
+
+    t->_writeFile();
+}
+
+void TimeTable::addRecords(string s, int n)
+{
+    stringstream ss(s);
+    string hour, minutes, number, discipline, group, classroom, F, I, O;
+
+    try
+    {
+        getline(ss, hour, ':');
+        getline(ss, minutes, ' ');
+        getline(ss, number, ' ');
+        getline(ss, discipline, ' ');
+        getline(ss, group, ' ');
+        getline(ss, classroom, ' ');
+        getline(ss, F, ' ');
+        getline(ss, I, ' ');
+        getline(ss, O, ' ');
+
+        records[n].date.hour = stoi(hour);
+        records[n].date.minutes = stoi(minutes);
+        records[n].number = stoi(number);
+        records[n].discipline = discipline;
+        records[n].group = stoi(group);
+        records[n].classroom = stoi(classroom);
+        records[n].FIO.surname = F;
+        records[n].FIO.name = I;
+        records[n].FIO.patronymic = O;
+    }
+    catch (...)
+    {
+        cout << "Ошибка. Не удалось корректно считать строку: " << n + 1 << endl;
+    }
+}
+void TimeTable::_writeFile()
+{
+    ofstream f("database_write.txt", ios::app);
+    if (f.is_open())
+    {
+        int s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0, s5 = 0, s6 = 0, s7 = 0, s8 = 0;
+        for (int i = 0; i < size; i++)
+        {
+            s0 = _max(records[i].date.hour, s0);
+            s1 = _max(records[i].date.minutes, s1);
+            s2 = _max(records[i].number, s2);
+            s3 = _max(records[i].discipline, s3);
+            s4 = _max(records[i].group, s4);
+            s5 = _max(records[i].classroom, s5);
+            s6 = _max(records[i].FIO.surname, s6);
+            s7 = _max(records[i].FIO.name, s7);
+            s8 = _max(records[i].FIO.patronymic, s8);
+        }
+        for (int i = 0; i < size; i++)
+        {
+            f << _write(records[i].discipline, s3) << _write(records[i].group, s4) << _write(records[i].date, s0, s1) << _write(records[i].number, s2) <<
+                _write(records[i].classroom, s5) << _write(records[i].FIO.surname, s6) << _write(records[i].FIO.name, s7) << _write(records[i].FIO.patronymic, s8) << endl;
+        }
+    }
+    else
+        cout << "Ошибка: Не удалось прочитать файл.\n";
+    f.close();
+}
+void TimeTable::quick_sort_1()
+{
+    if (size > 1)
+        quick_sort_1(0, size - 1, 0);
+}
+void TimeTable::quick_sort_1(int i, int j, int n)
+{
+    string support = records[(i + j + 2) / 2].discipline;
+    int _i = i; int _j = j; n++;
+
+    while (i <= j)
+    {
+        while (records[i].discipline > support) i++;
+        while (records[j].discipline < support) j--;
+
+        if (i <= j)
+        {
+            swap(records[i], records[j]);
+            i++; j--;
+        }
+    }
+    if (n < 1000)
+    {
+        if (_i < j) quick_sort_1(_i, j, n);
+        if (i < _j) quick_sort_1(i, _j, n);
+    }
+}
+void TimeTable::quick_sort_2()
+{
+
+    for (int i = 1; i < size - 1; i++)
+    {
+        bool b = true;
+        for (int j = i; j < size && b; j++)
+        {
+            if (records[i - 1].discipline != records[j].discipline)
+            {
+                if (i < j)
+                    quick_sort_2(i - 1, j - 1, 0);
+                b = false; i = j;
+            }
+            else if (j == size - 1)
+            {
+                quick_sort_2(i - 1, j, 0);
+                b = false; i = j;
+            }
+        }
+    }
+}
+void TimeTable::quick_sort_2(int i, int j, int n)
+{
+    int support = records[(i + j + 2) / 2].group;
+    _String temp;
+    int _i = i; int _j = j; n++;
+
+    while (i <= j)
+    {
+        while (records[i].group < support) i++;
+        while (records[j].group > support) j--;
+
+        if (i <= j)
+        {
+            swap(records[i], records[j]);
+            i++; j--;
+        }
+    }
+    if (n < 1000)
+    {
+        if (_i < j) quick_sort_2(_i, j, n);
+        if (i < _j) quick_sort_2(i, _j, n);
+    }
+}
+void TimeTable::insertion_sort_1()
+{
+    for (int i = 1; i < size; i++)
+        for (int j = i; j > 0 && records[j - 1].discipline < records[j].discipline; j--)
+            swap(records[j - 1], records[j]);
+}
+void TimeTable::insertion_sort_2()
+{
+    for (int i = 1; i < size; i++)
+        for (int j = i; j > 0 && records[j - 1].group > records[j].group && records[j - 1].discipline == records[j].discipline; j--)
+            swap(records[j - 1], records[j]);
+}
+
+
+void _readFile(TimeTable* &t)
+{
+    ifstream f("database_read.txt", ios::in);
+    string temp;
+    if (f.is_open())
+    {
+        getline(f, temp);
+        int _size = stoi(temp);
+        t = new TimeTable(_size);
+
+        for (int i = 0; i < _size; i++)
+        {
+            getline(f, temp);
+            t->addRecords(temp, i);
+        }
+    }
+    else
+        cout << "Ошибка: Не удалось прочитать файл.\n";
+    f.close();
+}
+
+int _max(int s, int max)
+{
+    stringstream ss; ss << s;
+    string str = ss.str();
+    if (max < str.size())
+        return str.size();
+    else
+        return max;
+}
+int _max(string s, int max)
+{
+    if (max < s.size())
+        return s.size();
+    else
+        return max;
+}
+string _write(int s, int max)
+{
+    stringstream ss; ss << s;
+    string str = ss.str();
+    while (str.size() < max)
+    {
+        str = str + " ";
+    }
+    return str + " ";
+}
+string _write(string s, int max)
+{
+    while (s.size() < max)
+    {
+        s = s + " ";
+    }
+    return s + " ";
+}
+string _write(Time t, int maxh, int maxm)
+{
+    stringstream ssh; ssh << t.hour;
+    stringstream ssm; ssm << t.minutes;
+    string strh = ssh.str();
+    string strm = ssm.str();
+    if (strh.size() < maxh)
+        strh = "0" + strh;
+    if (strm.size() < maxm)
+        strm = ":0" + strm;
+    else
+        strm = ":" + strm;
+    return strh + strm + " ";
+}
