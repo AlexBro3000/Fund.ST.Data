@@ -5,6 +5,9 @@
 #include <chrono>
 using namespace std;
 
+string r_str = "Test/database_read 1.txt";
+string w_str = "database_write.txt";
+
 struct Time
 {
     int hour;
@@ -24,6 +27,25 @@ struct _String
     int group;           // Номер группы
     int classroom;       // Номер аудитории
     FULL_NAME FIO;
+
+    inline bool operator<(const _String& other)
+    {
+        if (discipline < other.discipline)
+            return true;
+        else
+            if (discipline == other.discipline && group > other.group)
+                return true;
+        return false;
+    }
+    inline bool operator>(const _String& other)
+    {
+        if (discipline > other.discipline)
+            return true;
+        else
+            if (discipline == other.discipline && group < other.group)
+                return true;
+        return false;
+    }
 };
 
 class TimeTable
@@ -38,20 +60,17 @@ public:
     void addRecords(string s, int n);
     void _writeFile();
     // Быстрая сортировка (Средний опорный)
-    void quick_sort_1();
-    void quick_sort_2();
+    void quick_sort();
     // Сортировка вставки
-    void insertion_sort_1();
-    void insertion_sort_2();
+    void insertion_sort();
 private:
-    void quick_sort_1(int i, int j, int n);
-    void quick_sort_2(int i, int j, int n);
+    void quick_sort(int i, int j);
 
     const int size;
     _String* records;
 };
 
-void _readFile(TimeTable* &t);
+void _readFile(TimeTable*& t);
 
 int _max(int s, int max);
 int _max(string s, int max);
@@ -65,15 +84,13 @@ int main()
 
     TimeTable* t;
     _readFile(t);
-    
+
     chrono::system_clock::time_point start_Code = chrono::system_clock::now();
-    t->quick_sort_1();
-    t->quick_sort_2();
-    /*t->insertion_sort_1();
-    t->insertion_sort_2();*/
+    t->quick_sort();
+    t->insertion_sort();
     chrono::system_clock::time_point finish_Code = chrono::system_clock::now();
 
-    ofstream f("database_write.txt", ios::out);
+    ofstream f(w_str, ios::out);
     if (f.is_open())
     {
         f << chrono::duration_cast<chrono::nanoseconds> (finish_Code - start_Code).count() << " ns\n";
@@ -119,7 +136,7 @@ void TimeTable::addRecords(string s, int n)
 }
 void TimeTable::_writeFile()
 {
-    ofstream f("database_write.txt", ios::app);
+    ofstream f(w_str, ios::app);
     if (f.is_open())
     {
         int s0 = 0, s1 = 0, s2 = 0, s3 = 0, s4 = 0, s5 = 0, s6 = 0, s7 = 0, s8 = 0;
@@ -145,20 +162,20 @@ void TimeTable::_writeFile()
         cout << "Ошибка: Не удалось прочитать файл.\n";
     f.close();
 }
-void TimeTable::quick_sort_1()
+void TimeTable::quick_sort()
 {
     if (size > 1)
-        quick_sort_1(0, size - 1, 0);
+        quick_sort(0, size - 1);
 }
-void TimeTable::quick_sort_1(int i, int j, int n)
+void TimeTable::quick_sort(int i, int j)
 {
-    string support = records[(i + j + 2) / 2].discipline;
-    int _i = i; int _j = j; n++;
+    _String support = records[(i + j + 2) / 2];
+    int _i = i; int _j = j;
 
     while (i <= j)
     {
-        while (records[i].discipline > support) i++;
-        while (records[j].discipline < support) j--;
+        while (records[i] > support) i++;
+        while (records[j] < support) j--;
 
         if (i <= j)
         {
@@ -166,74 +183,20 @@ void TimeTable::quick_sort_1(int i, int j, int n)
             i++; j--;
         }
     }
-    if (n < 1000)
-    {
-        if (_i < j) quick_sort_1(_i, j, n);
-        if (i < _j) quick_sort_1(i, _j, n);
-    }
+    if (_i < j) quick_sort(_i, j);
+    if (i < _j) quick_sort(i, _j);
 }
-void TimeTable::quick_sort_2()
-{
-
-    for (int i = 1; i < size - 1; i++)
-    {
-        bool b = true;
-        for (int j = i; j < size && b; j++)
-        {
-            if (records[i - 1].discipline != records[j].discipline)
-            {
-                if (i < j)
-                    quick_sort_2(i - 1, j - 1, 0);
-                b = false; i = j;
-            }
-            else if (j == size - 1)
-            {
-                quick_sort_2(i - 1, j, 0);
-                b = false; i = j;
-            }
-        }
-    }
-}
-void TimeTable::quick_sort_2(int i, int j, int n)
-{
-    int support = records[(i + j + 2) / 2].group;
-    _String temp;
-    int _i = i; int _j = j; n++;
-
-    while (i <= j)
-    {
-        while (records[i].group < support) i++;
-        while (records[j].group > support) j--;
-
-        if (i <= j)
-        {
-            swap(records[i], records[j]);
-            i++; j--;
-        }
-    }
-    if (n < 1000)
-    {
-        if (_i < j) quick_sort_2(_i, j, n);
-        if (i < _j) quick_sort_2(i, _j, n);
-    }
-}
-void TimeTable::insertion_sort_1()
+void TimeTable::insertion_sort()
 {
     for (int i = 1; i < size; i++)
-        for (int j = i; j > 0 && records[j - 1].discipline < records[j].discipline; j--)
-            swap(records[j - 1], records[j]);
-}
-void TimeTable::insertion_sort_2()
-{
-    for (int i = 1; i < size; i++)
-        for (int j = i; j > 0 && records[j - 1].group > records[j].group && records[j - 1].discipline == records[j].discipline; j--)
+        for (int j = i; j > 0 && records[j - 1] < records[j]; j--)
             swap(records[j - 1], records[j]);
 }
 
 
-void _readFile(TimeTable* &t)
+void _readFile(TimeTable*& t)
 {
-    ifstream f("database_read.txt", ios::in);
+    ifstream f(r_str, ios::in);
     string temp;
     if (f.is_open())
     {
