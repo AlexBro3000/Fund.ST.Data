@@ -180,7 +180,7 @@ void TimeTable::quick_sort()
         quick_sort(0, size - 1);
 }
 
-size_t TimeTable::delta(size_t j, size_t size)
+size_t TimeTable::delta(size_t j)
 {
     size_t j2 = 1;
     for (size_t i = 0; i < j; i++)
