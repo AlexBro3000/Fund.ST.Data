@@ -90,66 +90,68 @@ public:
     template<typename Type = size_t>
     vector<size_t> BinarySearchHomogeneous(Type val)
     {
-        _string_timetable* temp = new _string_timetable[size];
-        for (size_t i = 0; i < size; i++)
+        return BinarySearchHomogeneous<size_t>(val, delta(1), 2, 0, size + 1);
+    }
+    template<typename Type = size_t>
+    vector<size_t> BinarySearchHomogeneous(Type val, size_t i, size_t j, size_t _begin, size_t _end)
+    {
+        vector<size_t> result;
+        size_t step = 1;
+
+        while (true)
         {
-            temp[i].number_str = records[i].number_str;
-            temp[i].date = records[i].date;
-            temp[i].number = records[i].number;
-            temp[i].discipline = records[i].discipline;
-            temp[i].group = records[i].group;
-            temp[i].classroom = records[i].classroom;
-            temp[i].FIO = records[i].FIO;
-        }
-        vector<size_t> result; size_t step = 0;
-
-        bool bool_t1 = true;
-        while (bool_t1)
-        {
-            bool_t1 = false;
-
-            int i = delta(1, size - result.size());
-            int j = 2;
-
-            bool bool_t2 = true;
-            while (bool_t2)
+            if (val == records[i - 1].classroom)
             {
-                if (val == temp[i - 1].classroom)
+                if (i != _begin && i != _end)
+                    result.push_back(records[i - 1].number_str);
+
+                if (delta(j) != 0)
                 {
-                    result.push_back(temp[i - 1].number_str);
-                    for (size_t j = i - 1; j < size - result.size(); j++)
-                        temp[j] = temp[j + 1];
-                    bool_t1 = true;
-                    bool_t2 = false;
+                    vector<size_t> result_l = BinarySearchHomogeneous<size_t>(val, i - delta(j), j + 1, _begin, i);
+                    for (auto k = result_l.begin(); k < --result_l.end(); ++k)
+                        result.push_back(*k);
+
+                    vector<size_t> result_r = BinarySearchHomogeneous(val, i + delta(j), j + 1, i, _end);
+                    for (auto k = result_r.begin(); k < --result_r.end(); ++k)
+                        result.push_back(*k);
+
+                    result.push_back(step + *(--result_l.end()) + *(--result_r.end()));
                 }
                 else
-                    if (val < temp[i - 1].classroom)
-                    {
-                        if (delta(j, size - result.size()) == 0 || i == 0 || i == size - 1)
-                            bool_t2 = false;
-                        i = i - delta(j, size - result.size());
-                        j++;
-                    }
-                    else
-                    {
-                        if (delta(j, size - result.size()) == 0 || i == 0 || i == size - 1)
-                            bool_t2 = false;
-                        i = i + delta(j, size - result.size());
-                        j++;
-                    }
-                step++;
-            }
-        }
-        result.push_back(step);
+                    result.push_back(step);
 
-        return result;
+                return result;
+            }
+            else
+                if (val < records[i - 1].classroom)
+                {
+                    if (delta(j) == 0 || i == _begin + 1)
+                    {
+                        result.push_back(step);
+                        return result;
+                    }
+                    i = i - delta(j);
+                    j++;
+                }
+                else
+                {
+                    if (delta(j) == 0 || i == _end - 1)
+                    {
+                        result.push_back(step);
+                        return result;
+                    }
+                    i = i + delta(j);
+                    j++;
+                }
+            step++;
+        }
     }
 
 private:
     void setRecords(size_t n, string s);
     void quick_sort(int i, int j);
 
-    size_t delta(size_t j, size_t size);
+    size_t delta(size_t j);
 
 };
 
