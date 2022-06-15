@@ -63,24 +63,14 @@ public:
     template<typename Type = size_t>
     vector<size_t> LinearSearch(Type val)
     {
-        _string_timetable* temp = new _string_timetable[size];
-        for (size_t i = 0; i < size; i++)
-        {
-            temp[i].number_str = records[i].number_str;
-            temp[i].date = records[i].date;
-            temp[i].number = records[i].number;
-            temp[i].discipline = records[i].discipline;
-            temp[i].group = records[i].group;
-            temp[i].classroom = records[i].classroom;
-            temp[i].FIO = records[i].FIO;
-        }
-        vector<size_t> result; size_t step = 0;
+        vector<size_t> result;
+        size_t step = 0;
 
         size_t i = 0;
         while (i < size)
         {
-            if (temp[i].classroom == val)
-                result.push_back(temp[i].number_str);
+            if (records[i].classroom == val)
+                result.push_back(records[i].number_str);
             i++; step++;
         }
         result.push_back(step);
