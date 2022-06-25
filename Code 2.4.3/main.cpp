@@ -4,30 +4,39 @@
 int main()
 {
     setlocale(LC_ALL, "ru");
-
-    Dynamic_Hash_Table* table = new Dynamic_Hash_Table(1);
-    table->add(new Ingredients("Молоко", "Литр", 120));
-    table->add(new Ingredients("Молоко", "Килограмм", 120));
-    table->add(new Ingredients("Молоко", "Литр", 40));
-    table->add(new Ingredients("Яблоко", "Килограмм", 400));
-
-    table->add(new Ingredients("Соль", "Грамм", 0));
-    table->add(new Ingredients("Перец черный", "Грамм", 251));
-    table->add(new Ingredients("Масло сливочное", "Килограм", 7170));
-    table->add(new Ingredients("Масло растительное", "Литр", 8840));
-    table->add(new Ingredients("Масло оливковое", "Литр", 8840));
+    Dynamic_Hash_Table* table = new Dynamic_Hash_Table(10);
+    
+    string s = "AaaaaZ";
+    for (int i = 1; i < 10; i++) {
+        table->add(new Ingredients(s, "Грамм", 0));
+        s[0] += 2;
+        s[5] -= 2;
+        table->add(new Ingredients(s, "Грамм2", 1));
+    }
     table->print_all();
-
-    cout << table->seach("Молоко");
     cout << endl << endl;
 
-    table->delete_key("Молоко");
-    table->delete_key("Молоко");
-    table->delete_key("Яблоко");
-    table->delete_key("Соль");
-    table->print_all();
 
-    cout << table->seach("Молоко");
+
+    for (int i = 1; i < 6; i++) {
+        table->delete_key(new Ingredients(s, "Грамм", 0));
+        s[0] -= 4;
+        s[5] += 4;
+
+    }
+    table->print_all();
     cout << endl << endl;
 
+
+
+    s = "OaabaL";
+    for (int i = 1; i < 5; i++) {
+
+        table->add(new Ingredients(s, "Грамм1", 0));
+        s[0] -= 2;
+        s[5] += 2;
+
+    }
+    table->print_all();
+    cout << endl << endl;
 }
